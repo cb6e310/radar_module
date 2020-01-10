@@ -1,15 +1,15 @@
 #include "data_tablemodel.h"
 #include "global_buffer.h"
 
-Data_TableModel::Data_TableModel(DBCHandle dh, QObject *parent)
-	: m_hDBC(dh), QAbstractTableModel(parent), arr_row_list(NULL)
+Data_TableModel::Data_TableModel(QObject *parent)
+	: QAbstractTableModel(parent)
 {
 	setHorizontalHeaderList(QStringList() << QStringLiteral("ID") << QStringLiteral("消息名") << QStringLiteral("注释"));
 }
 
 Data_TableModel::~Data_TableModel(void)
 {
-	arr_row_list = NULL;
+	arr_row_list.clear();
 }
 
 void Data_TableModel::setHorizontalHeaderList(QStringList horizontalHeaderList)
@@ -30,10 +30,10 @@ int Data_TableModel::rowCount(const QModelIndex &parent) const
 	if (vertical_header_list.size() > 0)
 		return vertical_header_list.size();
 
-	if (NULL == arr_row_list)
+	if (arr_row_list.empty())
 		return 0;
 	else
-		return arr_row_list->size();
+		return arr_row_list.size();
 }
 
 //Returns the number of columns for the children of the given parent.
@@ -42,12 +42,12 @@ int Data_TableModel::columnCount(const QModelIndex &parent) const
 	if (horizontal_header_list.size() > 0)
 		return horizontal_header_list.size();
 
-	if (NULL == arr_row_list)
+	if (arr_row_list.empty())
 		return 0;
-	else if (arr_row_list->size() < 1)
+	else if (arr_row_list.size() < 1)
 		return 0;
 	else
-		return arr_row_list->at(0).size();
+		return arr_row_list.at(0).size();
 }
 
 //Returns the data stored under the given role for the item referred to by the index.
@@ -59,11 +59,11 @@ QVariant Data_TableModel::data(const QModelIndex &index, int role) const
 		return QVariant();
 	}
 
-	if (NULL == arr_row_list) {
+	if (arr_row_list.empty()) {
 		return QVariant();
 	}
 
-	if (arr_row_list->size() < 1) {
+	if (arr_row_list.size() < 1) {
 		return QVariant();
 	}
 
@@ -74,11 +74,11 @@ QVariant Data_TableModel::data(const QModelIndex &index, int role) const
 
 	//以文本形式显示的核心数据
 	else if (role == Qt::DisplayRole) {
-		if (index.row() >= arr_row_list->size())
+		if (index.row() >= arr_row_list.size())
 			return QVariant();
-		if (index.column() >= arr_row_list->at(0).size())
+		if (index.column() >= arr_row_list.at(0).size())
 			return QVariant();
-		return arr_row_list->at(index.row()).at(index.column());
+		return arr_row_list.at(index.row()).at(index.column());
 	}
 	return QVariant();
 }
@@ -118,20 +118,42 @@ Qt::ItemFlags Data_TableModel::flags(const QModelIndex &index) const
 }
 void Data_TableModel::refresh_with_new_frame()
 {
+	std::map<QString,int> needed_signame={
+		{"Object_ID",0},{"Object_DistLong",1},{"Object_DistLat",2}
+	};
+	
 	mtx.lock();
 	qDebug() << "table mtx locked";
 	DBCMessage msg;
 	auto cur_info = global_buffer.takeFirst();
 	qDebug() << "data length: " << cur_info.vco[0].DataLen;
 	for (int i = 0; i < cur_info.noframe; ++i) {
-		if (DBC_Analyse(m_hDBC, &cur_info.vco[i], &msg)) {
+		/*
+		if (DBC_Analyse(cfg->m_hDBC, &cur_info.vco[i], &msg)) {
+			
+			qDebug() << "analyse success";
+			QList<QString> _list;
+			if (msg.strName == "Obj_1_General") {
+				for (int i = 0; i < msg.nSignalCount; i++) {
+					auto _name = msg.vSignals[i].strName;
+					if (needed_signame.count(_name))
+						_list[needed_signame.at(_name)] = msg.vSignals[i].nValue;
+				}
+				arr_row_list.append(_list);
+			}
+		}
+		*/
+
+		if (DBC_Analyse(cfg->m_hDBC, &cur_info.vco[i], &msg)) {
 			qDebug() << "analyse success";
 			QStringList _list;
 			_list << QString::number(msg.nID) << tr(msg.strName) << tr(msg.strComment);
-			arr_row_list->append(_list);
+			arr_row_list.append(_list);
 		}
+
 		refrushModel();
 	}
+	
 	mtx.unlock();
 	qDebug() << "table mtx unlocked"; 
 }

@@ -7,7 +7,7 @@ Radar_module::Radar_module(QWidget *parent)
 	can_thread = new Can_thread(Q_NULLPTR);
 	//-------------------------create the received frame viewer-----------------------------  
 
-	model1 = new Data_TableModel(cfg->m_hDBC, this);
+	model1 = new Data_TableModel(this);
 	ui_main->table_view_dataDisplay->setModel(model1);
 	//----------------------create the received frame info viewer done---------------------------- 
 

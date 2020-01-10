@@ -17,7 +17,7 @@ class Data_TableModel : public QAbstractTableModel
 
 public:
 
-	Data_TableModel(DBCHandle, QObject *parent = 0);
+	Data_TableModel(QObject*);
 	~Data_TableModel(void);
 	void setHorizontalHeaderList(QStringList horizontalHeaderList);
 	void setVerticalHeaderList(QStringList verticalHeaderList);
@@ -37,8 +37,5 @@ signals:
 private:
 	QStringList horizontal_header_list;
 	QStringList vertical_header_list;
-	QList< QStringList > *arr_row_list;
-	DBCHandle m_hDBC;
-
-
+	QList< QList<QString>> arr_row_list;
 };
