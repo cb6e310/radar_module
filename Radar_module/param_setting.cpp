@@ -1,7 +1,7 @@
 #include "param_setting.h"
 
 Param_setting::Param_setting(QWidget *parent)
-	: QDialog(parent), ui_setting(new Ui::Param_setting), cfg_tmp(new Connection_cfg())
+	: QDialog(parent), ui_setting(new Ui::Param_setting)
 {
 	ui_setting->setupUi(this);
 	this->setAttribute(Qt::WA_DeleteOnClose, 1);	//delete this when close()
@@ -11,17 +11,17 @@ Param_setting::Param_setting(QWidget *parent)
 	connect(ui_setting->baud_rate, SIGNAL(currentIndexChanged(const QString&)), 
 		this, SLOT(baud_rate_changed(const QString&)));
 
-	cfg_tmp->m_hDBC = DBC_Init();
+	cfg->m_hDBC = DBC_Init();
 
-	if (INVALID_DBC_HANDLE == cfg_tmp->m_hDBC) {
+	if (INVALID_DBC_HANDLE == cfg->m_hDBC) {
 		qDebug() << 1;
 		emit sig_DBC_init_failed(1);
 	}
 
-	cfg_tmp->callback_ctx.owner = this;
-	cfg_tmp->callback_ctx.devinfo = { 4, 0, 0 };
+	cfg->callback_ctx.owner = this;
+	cfg->callback_ctx.devinfo = { 4, 0, 0 };
 
-	DBC_SetSender(cfg_tmp->m_hDBC, OnSendFunc, &cfg_tmp->callback_ctx);
+	DBC_SetSender(cfg->m_hDBC, OnSendFunc, &cfg->callback_ctx);
 }
 
 Param_setting::~Param_setting()
@@ -37,11 +37,13 @@ void Param_setting::OnSendFunc(void* ctx, void* pObj) {
 }
 
 void Param_setting::on_start_connect_button_clicked() {
+	/*
 	QVariant qvar;
-	qvar.setValue(*cfg_tmp);
-	emit sig_start_new_connection(qvar);
+	qvar.setValue(*cfg);
+	*/
+	emit sig_start_new_connection();
 
-	//cfg_tmp->clear();
+	//cfg->clear();
 	//start CAN thread
 	//send radar_cfg
 
@@ -69,36 +71,36 @@ void Param_setting::on_read_DBC_file_button_clicked() {
 
 											 //in order not to get the messy code caused by chinese char, 
 											 //please make sure the dbc file directory has not included chinese char
-	strcpy_s(cfg_tmp->file_info.strFilePath, _MAX_FILE_PATH_, path.toStdString().c_str());
-	qDebug() << cfg_tmp->file_info.strFilePath;
-	cfg_tmp->file_info.nType = FileInfo::DBC_J1939;
-	if (!DBC_LoadFile(cfg_tmp->m_hDBC, &cfg_tmp->file_info)) {
+	strcpy_s(cfg->file_info.strFilePath, _MAX_FILE_PATH_, path.toStdString().c_str());
+	qDebug() << cfg->file_info.strFilePath;
+	cfg->file_info.nType = FileInfo::DBC_J1939;
+	if (!DBC_LoadFile(cfg->m_hDBC, &cfg->file_info)) {
 		qDebug() << "1111";
 		emit sig_DBC_init_failed(2);
-		DBC_Release(cfg_tmp->m_hDBC);
+		DBC_Release(cfg->m_hDBC);
 	}
 	analyze_DBC_file();
 }
 
 void Param_setting::analyze_DBC_file() {
-	if (0 == DBC_GetMessageCount(cfg_tmp->m_hDBC)) {
+	if (0 == DBC_GetMessageCount(cfg->m_hDBC)) {
 		qDebug() << "2222";
 		emit sig_DBC_init_failed(3);
 	}
 	DBCMessage _msg;
-	if (DBC_GetFirstMessage(cfg_tmp->m_hDBC, &_msg))
+	if (DBC_GetFirstMessage(cfg->m_hDBC, &_msg))
 	{
-		while (DBC_GetNextMessage(cfg_tmp->m_hDBC, &_msg))
+		while (DBC_GetNextMessage(cfg->m_hDBC, &_msg))
 		{
-			cfg_tmp->DBC_message_list.push_back(_msg);
+			cfg->DBC_message_list.push_back(_msg);
 		}
 	}
 }
 
 void Param_setting::baud_rate_changed(const QString& str) {
 	qDebug() << str;
-	cfg_tmp->baud_rate = str.toInt();
-	qDebug() << cfg_tmp->baud_rate;
+	cfg->baud_rate = str.toInt();
+	qDebug() << "cfg->baud_rate: " << cfg->baud_rate;
 }
 
 //error information box

@@ -17,7 +17,7 @@ void Can_thread::stop() {
 	stop_flag = true;
 }
 
-//use channel_2 to receive, and use channel_1 to send
+//use channel_1 to receive, and use channel_2 to send
 void Can_thread::open_CAN_device() {
 	qDebug() << "open_Can_device()";
 	if (!VCI_OpenDevice(4, 0, 0)) {
@@ -101,22 +101,31 @@ void Can_thread::check_connection_status() {
 
 }
 
+//low receive high send
 void Can_thread::run() {
 	qDebug() << "second thread running...";
+	QTime _time;
 	while (!stop_flag) {
 		received_info info;
 		mtx.lock();
-		qDebug() << "mtx locked";
-		if (info.noframe = VCI_Receive(4, 0, 1, info.vco, 2500, 0)) {
+		qDebug() << "can mtx locked";
+		if (info.noframe = VCI_Receive(4, 0, 0, info.vco, 2500, 0)) {
+			qDebug() << "number of frame: " << info.noframe;
 			global_buffer.append(info);
+			_time.restart();
+			for (int i = 0; i < info.noframe; i++) {
+				DBC_OnReceive(cfg->m_hDBC, &info.vco[i]);
+			}
+			qDebug() << "on_receive: " << _time.elapsed() << "ms";
 			emit sig_received_frame();
-			qDebug() << "aha, a frame received.";
+			qDebug() << "aha, new frame received.";
 			/*
 			QByteArray ba;
 			ba.resize(info.noframe * sizeof(VCI_CAN_OBJ));
 			*/
 		}
 		mtx.unlock();
+		qDebug() << "can mtx unlocked";
 		sleep(1000);
 	}
 	stop_flag = false;

@@ -1,7 +1,7 @@
 #include "radar_module.h"
 
 Radar_module::Radar_module(QWidget *parent)
-	: QMainWindow(parent), ui_main(new Ui::Radar_moduleClass), cfg(new Connection_cfg())//, setting(new Param_setting())
+	: QMainWindow(parent), ui_main(new Ui::Radar_moduleClass)//, setting(new Param_setting())
 {
 	ui_main->setupUi(this);
 	can_thread = new Can_thread(Q_NULLPTR);
@@ -49,7 +49,7 @@ Radar_module::~Radar_module() {
 
 void Radar_module::action_create_triggered() {
 	setting = new Param_setting();
-	connect(setting, SIGNAL(sig_start_new_connection(QVariant)), this, SLOT(new_cfg_receive(QVariant)));
+	connect(setting, SIGNAL(sig_start_new_connection()), this, SLOT(new_cfg_receive()));
 	setting->exec();
 }
 
@@ -68,9 +68,9 @@ void Radar_module::display_connection_status() {
 	//
 }
 
-void Radar_module::new_cfg_receive(QVariant qvar) {
-	*cfg = qvar.value<Connection_cfg>();
-	qDebug() << "baudrate::::::" << cfg->baud_rate;
+void Radar_module::new_cfg_receive() {
+	//*cfg = qvar.value<Connection_cfg>();
+	qDebug() << "cfg->baud_rate: " << cfg->baud_rate;
 	auto _msg_vec = cfg->DBC_message_list;
 
 	for (int i = 0; i < _msg_vec.size(); i++) {

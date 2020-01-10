@@ -27,14 +27,14 @@ private slots:
 	//void display_DBC_info();
 	//void receive_frame(QVariant);
 	void display_connection_status();
-	void new_cfg_receive(QVariant);
+	void new_cfg_receive();
 	void error_msg_display(int);
 
 private:
 	Ui::Radar_moduleClass* ui_main;
 	Param_setting *setting;
 	Can_thread *can_thread;
-	Connection_cfg *cfg;
+	//Connection_cfg *cfg;
 	Data_TableModel *model1;
 	QStandardItemModel* model2;
 };

@@ -9,6 +9,7 @@
 #include <map>
 #include "ui_param_setting.h"
 #include "connection_cfg.h"
+#include "global_buffer.h"
 
 class Param_setting : public QDialog
 {
@@ -27,11 +28,11 @@ private slots:
 
 signals:
 	void sig_DBC_init_failed(int);
-	void sig_start_new_connection(QVariant);
+	void sig_start_new_connection();
 
 private:
 	Ui::Param_setting* ui_setting;
-	Connection_cfg* cfg_tmp;
+	//Connection_cfg* cfg;
 	void analyze_DBC_file();
 	static void OnSendFunc(void* ctx, void* pObj);
 };

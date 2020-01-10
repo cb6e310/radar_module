@@ -119,10 +119,13 @@ Qt::ItemFlags Data_TableModel::flags(const QModelIndex &index) const
 void Data_TableModel::refresh_with_new_frame()
 {
 	mtx.lock();
+	qDebug() << "table mtx locked";
 	DBCMessage msg;
 	auto cur_info = global_buffer.takeFirst();
+	qDebug() << "data length: " << cur_info.vco[0].DataLen;
 	for (int i = 0; i < cur_info.noframe; ++i) {
 		if (DBC_Analyse(m_hDBC, &cur_info.vco[i], &msg)) {
+			qDebug() << "analyse success";
 			QStringList _list;
 			_list << QString::number(msg.nID) << tr(msg.strName) << tr(msg.strComment);
 			arr_row_list->append(_list);
@@ -130,6 +133,7 @@ void Data_TableModel::refresh_with_new_frame()
 		refrushModel();
 	}
 	mtx.unlock();
+	qDebug() << "table mtx unlocked"; 
 }
 /*
 void Data_TableModel::setModalData(QList< QStringList > *rowlist)

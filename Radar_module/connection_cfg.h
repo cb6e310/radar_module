@@ -8,6 +8,7 @@
 #include "IDBCManager.h"
 #include "ControlCAN.h"
 
+
 struct DevInfo
 {
 	DWORD nDevType;
