@@ -4,7 +4,9 @@
 Data_TableModel::Data_TableModel(QObject *parent)
 	: QAbstractTableModel(parent)
 {
-	setHorizontalHeaderList(QStringList() << QStringLiteral("ID") << QStringLiteral("ÏûÏ¢Ãû") << QStringLiteral("×¢ÊÍ"));
+	setHorizontalHeaderList(QStringList() << QStringLiteral("ID") 
+										  << QStringLiteral("Object_DistLong") 
+		                                  << QStringLiteral("Object_DistLat"));
 }
 
 Data_TableModel::~Data_TableModel(void)
@@ -119,7 +121,7 @@ Qt::ItemFlags Data_TableModel::flags(const QModelIndex &index) const
 void Data_TableModel::refresh_with_new_frame()
 {
 	std::map<QString,int> needed_signame={
-		{"Object_ID",0},{"Object_DistLong",1},{"Object_DistLat",2}
+		{"Obj_ID",0},{"Obj_DistLong",1},{"Obj_DistLat",2}
 	};
 	
 	mtx.lock();
@@ -128,29 +130,35 @@ void Data_TableModel::refresh_with_new_frame()
 	auto cur_info = global_buffer.takeFirst();
 	qDebug() << "data length: " << cur_info.vco[0].DataLen;
 	for (int i = 0; i < cur_info.noframe; ++i) {
-		/*
+		
 		if (DBC_Analyse(cfg->m_hDBC, &cur_info.vco[i], &msg)) {
 			
 			qDebug() << "analyse success";
-			QList<QString> _list;
-			if (msg.strName == "Obj_1_General") {
+			qDebug() << msg.strName;
+			QList<QString> _list = { "","","" };
+			if (strcmp( msg.strName, "Obj_1_General") == 0) {
+				qDebug() << "we are in general";
 				for (int i = 0; i < msg.nSignalCount; i++) {
 					auto _name = msg.vSignals[i].strName;
-					if (needed_signame.count(_name))
-						_list[needed_signame.at(_name)] = msg.vSignals[i].nValue;
+					qDebug() << _name;
+					if (needed_signame.count(_name)) {
+						qDebug() << needed_signame.at(_name) << " " << msg.vSignals[i].nValue;
+						_list[needed_signame.at(_name)] = QString::number(msg.vSignals[i].nValue);
+					}
 				}
 				arr_row_list.append(_list);
 			}
 		}
-		*/
+		
 
+		/*
 		if (DBC_Analyse(cfg->m_hDBC, &cur_info.vco[i], &msg)) {
 			qDebug() << "analyse success";
 			QStringList _list;
 			_list << QString::number(msg.nID) << tr(msg.strName) << tr(msg.strComment);
 			arr_row_list.append(_list);
 		}
-
+		*/
 		refrushModel();
 	}
 	
