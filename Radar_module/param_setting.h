@@ -23,7 +23,7 @@ private slots:
 	void on_start_connect_button_clicked();
 	void on_read_DBC_file_button_clicked();
 	void error_msg_display(int i);
-	void baud_rate_changed(const QString&);
+	//void baud_rate_changed(const QString&);
 
 
 signals:

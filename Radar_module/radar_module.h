@@ -27,8 +27,12 @@ private slots:
 	//void display_DBC_info();
 	//void receive_frame(QVariant);
 	void display_connection_status();
+	void action_continue_triggered();
 	void new_cfg_receive();
 	void error_msg_display(int);
+
+signals:
+	void sig_disconnect();
 
 private:
 	Ui::Radar_moduleClass* ui_main;
@@ -37,4 +41,8 @@ private:
 	//Connection_cfg *cfg;
 	Data_TableModel *model1;
 	QStandardItemModel* model2;
+	QAction* action_create;
+	QAction* action_disconnect;
+	QAction* action_pause;
+	QAction* action_continue;
 };

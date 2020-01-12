@@ -5,8 +5,9 @@ Data_TableModel::Data_TableModel(QObject *parent)
 	: QAbstractTableModel(parent)
 {
 	setHorizontalHeaderList(QStringList() << QStringLiteral("ID") 
+										  << QStringLiteral("Time stamp")
 										  << QStringLiteral("Object_DistLong") 
-		                                  << QStringLiteral("Object_DistLat"));
+										  << QStringLiteral("Object_DistLat"));
 }
 
 Data_TableModel::~Data_TableModel(void)
@@ -49,7 +50,7 @@ int Data_TableModel::columnCount(const QModelIndex &parent) const
 	else if (arr_row_list.size() < 1)
 		return 0;
 	else
-		return arr_row_list.at(0).size();
+		return arr_row_list.begin().value().size()+1;
 }
 
 //Returns the data stored under the given role for the item referred to by the index.
@@ -78,9 +79,13 @@ QVariant Data_TableModel::data(const QModelIndex &index, int role) const
 	else if (role == Qt::DisplayRole) {
 		if (index.row() >= arr_row_list.size())
 			return QVariant();
-		if (index.column() >= arr_row_list.at(0).size())
+		if (index.column() >= arr_row_list.begin().value().size() + 1)
 			return QVariant();
-		return arr_row_list.at(index.row()).at(index.column());
+		if (arr_row_list.empty())
+			return QVariant();
+		if(index.column() == 0)
+			return (arr_row_list.begin()+index.row()).key();
+		return (arr_row_list.begin() + index.row()).value()[index.column() - 1];
 	}
 	return QVariant();
 }
@@ -118,8 +123,10 @@ Qt::ItemFlags Data_TableModel::flags(const QModelIndex &index) const
 	// flag|=Qt::ItemIsEditable // 设置单元格可编辑,此处注释,单元格无法被编辑  
 	return flag;
 }
-void Data_TableModel::refresh_with_new_frame()
+void Data_TableModel::refresh_with_new_frame(QString time_stamp)
 {
+	qDebug() << "time_stamp: " << time_stamp;
+	arr_row_list.clear();
 	std::map<QString,int> needed_signame={
 		{"Obj_ID",0},{"Obj_DistLong",1},{"Obj_DistLat",2}
 	};
@@ -130,38 +137,37 @@ void Data_TableModel::refresh_with_new_frame()
 	auto cur_info = global_buffer.takeFirst();
 	qDebug() << "data length: " << cur_info.vco[0].DataLen;
 	for (int i = 0; i < cur_info.noframe; ++i) {
-		
+
+		//一个 msg/vco[i] 对应一个 piece
 		if (DBC_Analyse(cfg->m_hDBC, &cur_info.vco[i], &msg)) {
 			
-			qDebug() << "analyse success";
-			qDebug() << msg.strName;
-			QList<QString> _list = { "","","" };
+			//qDebug() << "analyse success";
+			//qDebug() << msg.strName;
+
 			if (strcmp( msg.strName, "Obj_1_General") == 0) {
+				QList<QString> _list = { time_stamp, "", "" };
+				unsigned int _ID = 0;
 				qDebug() << "we are in general";
-				for (int i = 0; i < msg.nSignalCount; i++) {
-					auto _name = msg.vSignals[i].strName;
+				for (int j = 0; j < msg.nSignalCount; j++) {
+					auto _name = msg.vSignals[j].strName;
 					qDebug() << _name;
-					if (needed_signame.count(_name)) {
-						qDebug() << needed_signame.at(_name) << " " << msg.vSignals[i].nValue;
-						_list[needed_signame.at(_name)] = QString::number(msg.vSignals[i].nValue);
+
+					//if signal name is Obj_ID
+					if (needed_signame.find(_name) != needed_signame.end() 
+						&& needed_signame.find(_name)->second == 0) {
+						qDebug() << needed_signame.at(_name) << ": " << msg.vSignals[j].nValue;
+						_ID = msg.vSignals[j].nValue;
+					}
+					else if (needed_signame.find(_name) != needed_signame.end()) {
+						_list[needed_signame.at(_name)] = QString::number(msg.vSignals[j].nValue);
 					}
 				}
-				arr_row_list.append(_list);
+				//std::pair<int, QList<QString>> _piece(_ID, _list);
+				arr_row_list.insert(_ID, _list);
 			}
 		}
-		
-
-		/*
-		if (DBC_Analyse(cfg->m_hDBC, &cur_info.vco[i], &msg)) {
-			qDebug() << "analyse success";
-			QStringList _list;
-			_list << QString::number(msg.nID) << tr(msg.strName) << tr(msg.strComment);
-			arr_row_list.append(_list);
-		}
-		*/
-		refrushModel();
 	}
-	
+	refrushModel();
 	mtx.unlock();
 	qDebug() << "table mtx unlocked"; 
 }
@@ -187,4 +193,9 @@ void Data_TableModel::refrushModel()
 	endResetModel();
 
 	emit updateCount(this->rowCount(QModelIndex()));
+}
+
+void Data_TableModel::slot_disconnect() {
+	arr_row_list.clear();
+	refrushModel();
 }

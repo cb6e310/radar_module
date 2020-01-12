@@ -5,6 +5,7 @@
 #include <QPainter>
 #include <QHeaderView>
 #include <QAbstractTableModel>
+#include <set>
 #include "can_thread.h"
 #include "IDBCManager.h"
 
@@ -26,7 +27,7 @@ public:
 	QVariant data(const QModelIndex &index, int role) const override;
 	QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
 	Qt::ItemFlags flags(const QModelIndex &index) const;
-	void refresh_with_new_frame();
+	void refresh_with_new_frame(QString);
 	//void setModalData(QList< QStringList > *rowlist);
 	void refrushModel();
 
@@ -34,8 +35,15 @@ signals:
 
 	void updateCount(int count);
 
+public slots:
+	void slot_disconnect();
+
 private:
 	QStringList horizontal_header_list;
 	QStringList vertical_header_list;
-	QList< QList<QString>> arr_row_list;
+	QMap<int, QList<QString>> arr_row_list;
+	std::map<QString,int> needed_signame={
+		{"Obj_ID",0},{"Obj_DistLong",1},{"Obj_DistLat",2}
+	};
+	//std::set<int> obj_ID_set;
 };

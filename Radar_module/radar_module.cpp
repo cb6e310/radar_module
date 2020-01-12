@@ -13,26 +13,44 @@ Radar_module::Radar_module(QWidget *parent)
 
 	//----------------------create the DBC info viewer-----------------------------------------
 	model2 = new QStandardItemModel(ui_main->tree_view_DBCinfo);
-	model2->setHorizontalHeaderLabels(QStringList() << QStringLiteral("消息名") << QStringLiteral("数据") << QStringLiteral("注释"));
+	model2->setHorizontalHeaderLabels(QStringList() << QStringLiteral("消息名") 
+													<< QStringLiteral("数据") 
+													<< QStringLiteral("注释"));
 
 	ui_main->tree_view_DBCinfo->setModel(model2);
 	//---------------------create the DBC info viewer done------------------------------
 
 	//create a qtAction
-	QAction* action_create = new QAction(QString::fromLocal8Bit("新建"), this);
+	action_create = new QAction(QString::fromLocal8Bit("新建"), this);
 
-	QAction* action_disconnect = new QAction(QString::fromLocal8Bit("断开"), this);
+	action_disconnect = new QAction(QString::fromLocal8Bit("断开"), this);
+
+	action_pause = new QAction(QString::fromLocal8Bit("暂停"), this);
+
+	action_continue = new QAction(QString::fromLocal8Bit("继续"), this);
 
 	//apply the action to the widget on form
 	ui_main->menuBar->addAction(action_create);
 	ui_main->menuBar->addAction(action_disconnect);
+	ui_main->menuBar->addAction(action_pause);
 
 	//connect the action's signal with the corresponding slot 
 	qRegisterMetaType<QVariant>("QVariant");
 	connect(action_create, &QAction::triggered,
 		this, &Radar_module::action_create_triggered);
 
+	connect(action_disconnect, &QAction::triggered,
+		this, &Radar_module::action_disconnected_triggered);
+
+	connect(action_pause, &QAction::triggered,
+		this, &Radar_module::action_pause_triggered);
+
+	connect(action_continue, &QAction::triggered,
+		this, &Radar_module::action_continue_triggered);
+
 	connect(can_thread, &Can_thread::sig_received_frame, model1, &Data_TableModel::refresh_with_new_frame);
+
+	connect(this, &Radar_module::sig_disconnect, model1, &Data_TableModel::slot_disconnect);
 
 	//qRegisterMetaType<Connection_cfg>("Connection_cfg");
 
@@ -54,18 +72,35 @@ void Radar_module::action_create_triggered() {
 }
 
 void Radar_module::action_disconnected_triggered() {
+	can_thread->stop();
+	DBC_Release(cfg->m_hDBC);
+	VCI_CloseDevice(4, 0);
+	global_buffer.clear();
+	emit sig_disconnect();
 	//todo
 	//
 }
 
 void Radar_module::action_pause_triggered() {
+	pause_flag = 1;
 	//todo
 	//
+	ui_main->menuBar->removeAction(action_pause);
+	ui_main->menuBar->addAction(action_continue);
 }
 
 void Radar_module::display_connection_status() {
 	//todo
 	//
+}
+
+void Radar_module::action_continue_triggered() {
+	VCI_ClearBuffer(4, 0, 0);
+	pause_flag = 0;
+	//todo
+	//
+	ui_main->menuBar->removeAction(action_continue);
+	ui_main->menuBar->addAction(action_pause);
 }
 
 void Radar_module::new_cfg_receive() {

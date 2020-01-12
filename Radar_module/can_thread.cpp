@@ -104,7 +104,7 @@ void Can_thread::check_connection_status() {
 //low receive high send
 void Can_thread::run() {
 	qDebug() << "second thread running...";
-	QTime _time;
+	//QTime cur_time;
 	while (!stop_flag) {
 		received_info info;
 		mtx.lock();
@@ -112,12 +112,12 @@ void Can_thread::run() {
 		if (info.noframe = VCI_Receive(4, 0, 0, info.vco, 2500, 0)) {
 			qDebug() << "number of frame: " << info.noframe;
 			global_buffer.append(info);
-			_time.restart();
+			auto cur_time = QTime::currentTime().toString();
 			for (int i = 0; i < info.noframe; i++) {
 				DBC_OnReceive(cfg->m_hDBC, &info.vco[i]);
 			}
-			qDebug() << "on_receive: " << _time.elapsed() << "ms";
-			emit sig_received_frame();
+			if(!pause_flag)
+				emit sig_received_frame(cur_time);
 			qDebug() << "aha, new frame received.";
 			/*
 			QByteArray ba;
@@ -126,7 +126,7 @@ void Can_thread::run() {
 		}
 		mtx.unlock();
 		qDebug() << "can mtx unlocked";
-		sleep(1000);
+		sleep(30);
 	}
 	stop_flag = false;
 }

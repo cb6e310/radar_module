@@ -30,7 +30,7 @@ public:
 
 
 signals:
-	void sig_received_frame();
+	void sig_received_frame(QString);
 	void sig_init_CAN_failed(int);
 
 private:

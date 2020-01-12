@@ -6,10 +6,12 @@ Param_setting::Param_setting(QWidget *parent)
 	ui_setting->setupUi(this);
 	this->setAttribute(Qt::WA_DeleteOnClose, 1);	//delete this when close()
 
+	ui_setting->baud_rate->setCurrentText("500");
+
 	connect(this, &Param_setting::sig_DBC_init_failed, this, &Param_setting::error_msg_display);
 
-	connect(ui_setting->baud_rate, SIGNAL(currentIndexChanged(const QString&)), 
-		this, SLOT(baud_rate_changed(const QString&)));
+	//connect(ui_setting->baud_rate, SIGNAL(currentIndexChanged(const QString&)), 
+	//	this, SLOT(baud_rate_changed(const QString&)));
 
 	cfg->m_hDBC = DBC_Init();
 
@@ -41,6 +43,8 @@ void Param_setting::on_start_connect_button_clicked() {
 	QVariant qvar;
 	qvar.setValue(*cfg);
 	*/
+	cfg->baud_rate = ui_setting->baud_rate->currentText().toInt();
+
 	emit sig_start_new_connection();
 
 	//cfg->clear();
@@ -97,12 +101,13 @@ void Param_setting::analyze_DBC_file() {
 	}
 }
 
+/*
 void Param_setting::baud_rate_changed(const QString& str) {
 	qDebug() << str;
 	cfg->baud_rate = str.toInt();
 	qDebug() << "cfg->baud_rate: " << cfg->baud_rate;
 }
-
+*/
 //error information box
 void Param_setting::error_msg_display(int i) {
 	std::map<int, QString> error_type;
