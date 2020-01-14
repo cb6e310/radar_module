@@ -53,8 +53,6 @@ Radar_module::Radar_module(QWidget *parent)
 	connect(this, &Radar_module::sig_disconnect, model1, &Data_TableModel::slot_disconnect);
 
 	//qRegisterMetaType<Connection_cfg>("Connection_cfg");
-
-
 	/*
 	todo
 	connect

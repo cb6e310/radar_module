@@ -30,7 +30,8 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
-    <IncludePath>D:\programfiles\Qt5.9\5.9.8\msvc2015\include;D:\programfiles\Qt5.9\5.9.8\msvc2015\include\QtCore;D:\programfiles\Qt5.9\5.9.8\msvc2015\include\QtGui;D:\programfiles\Qt5.9\5.9.8\msvc2015\include\QtWidgets;$(IncludePath)</IncludePath>
+    <IncludePath>D:\programfiles\Qt5.9\5.9.8\msvc2015\include;D:\programfiles\Qt5.9\5.9.8\msvc2015\include\QtCore;D:\programfiles\Qt5.9\5.9.8\msvc2015\include\QtGui;D:\programfiles\Qt5.9\5.9.8\msvc2015\include\QtWidgets;D:\programfiles\opencv\opencv\x86\Debug\install\include;D:\programfiles\opencv\opencv\x86\Debug\install\include\opencv;D:\programfiles\opencv\opencv\x86\Debug\install\include\opencv2;$(IncludePath)</IncludePath>
+    <LibraryPath>D:\programfiles\opencv\opencv\x86\Debug\install\x86\vc14\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)$(Platform)\$(Configuration)\</OutDir>
@@ -75,7 +76,7 @@
       <OutputFile>$(OutDir)\$(ProjectName).exe</OutputFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalLibraryDirectories>E:\project\Radar_module\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>ControlCAN.lib;LibDBCManager.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>ControlCAN.lib;LibDBCManager.lib;opencv_world341d.lib;opencv_world341.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
